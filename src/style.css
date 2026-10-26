@@ -403,6 +403,16 @@ h1 span {
   font-size: clamp(1.15rem, 1.08rem + 0.25vw, 1.35rem);
 }
 
+.post-body .post-title-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+
+.post-body .post-title-link:hover {
+  color: var(--accent-strong);
+}
+
 .post-body a {
   color: var(--accent-strong);
   font-weight: 550;

@@ -9,7 +9,7 @@ async function fixture(t) {
   const base = await mkdtemp(path.join(os.tmpdir(),'microblog-'));
   t.after(()=>rm(base,{recursive:true,force:true}));
   await mkdir(path.join(base,'posts'));
-  await writeFile(path.join(base,'blog.config.json'),JSON.stringify({title:'Test <blog>',description:'Notes',author:'Me',initials:'ME',bio:'Writer',theme:'paper',collapseAfterWords:10}));
+  await writeFile(path.join(base,'blog.config.json'),JSON.stringify({title:'Test <blog>',description:'Notes',siteUrl:'https://example.com/journal/',language:'en',author:'Me',initials:'ME',bio:'Writer',theme:'paper',collapseAfterWords:10}));
   return base;
 }
 test('groups months, sorts newest first, renders Markdown, and sanitizes HTML',async t=>{
@@ -19,15 +19,28 @@ test('groups months, sorts newest first, renders Markdown, and sanitizes HTML',a
   await writeFile(path.join(base,'posts/2026-09-30--older.md'),'Older');
   assert.deepEqual(await build({base}),{posts:3,months:2});
   const html = await readFile(path.join(base,'dist/2026-10.html'),'utf8');
-  assert.ok(html.includes('<h1>Hello</h1>'));
+  assert.ok(html.includes('<h2><a class="post-title-link" href="2026-10-01--first.html">Hello</a></h2>'));
   assert.ok(html.includes('<strong>Strong</strong>'));
   assert.ok(!html.includes('javascript:'));
   assert.ok(!html.includes('<script>alert'));
   assert.ok(html.indexOf('id="2026-10-25--second"')<html.indexOf('id="2026-10-01--first"'));
   assert.ok(html.includes('href="2026-09.html"'));
   assert.ok(html.includes('Test &lt;blog&gt;'));
+  assert.ok(html.includes('rel="canonical" href="https://example.com/journal/2026-10.html"'));
+  assert.ok(html.includes('application/ld+json'));
+  assert.ok(html.includes('href="2026-10-25--second.html"'));
   const home = await readFile(path.join(base,'dist/index.html'),'utf8');
   assert.ok(!home.includes('id="2026-09-30--older"'));
+  assert.ok(home.includes('property="og:title"'));
+  const post = await readFile(path.join(base,'dist/2026-10-01--first.html'),'utf8');
+  assert.ok(post.includes('<title>Hello · Test &lt;blog&gt;</title>'));
+  assert.ok(post.includes('"@type":"BlogPosting"'));
+  assert.equal((post.match(/<h1>/g) || []).length,1);
+  assert.ok(!post.includes('<h1>Hello</h1>'));
+  const sitemap = await readFile(path.join(base,'dist/sitemap.xml'),'utf8');
+  assert.ok(sitemap.includes('<loc>https://example.com/journal/2026-10-01--first.html</loc>'));
+  assert.ok((await readFile(path.join(base,'dist/robots.txt'),'utf8')).includes('Sitemap: https://example.com/journal/sitemap.xml'));
+  assert.ok((await readFile(path.join(base,'dist/feed.xml'),'utf8')).includes('<title>Hello</title>'));
 });
 test('rejects invalid filenames and impossible calendar dates',async t=>{
   const base = await fixture(t);
@@ -56,4 +69,13 @@ test('empty blogs build and deleted posts remove obsolete archives',async t=>{
   assert.deepEqual(await build({base}),{posts:0,months:0});
   assert.ok(!(await readdir(path.join(base,'dist'))).includes('2026-10.html'));
   assert.ok((await readFile(path.join(base,'dist/index.html'),'utf8')).includes('A fresh page.'));
+});
+
+test('requires an absolute HTTP site URL for SEO output',async t=>{
+  const base = await fixture(t);
+  const configPath = path.join(base,'blog.config.json');
+  const config = JSON.parse(await readFile(configPath,'utf8'));
+  config.siteUrl = 'relative/path';
+  await writeFile(configPath,JSON.stringify(config));
+  await assert.rejects(build({base}),/Invalid URL|absolute HTTP/);
 });
