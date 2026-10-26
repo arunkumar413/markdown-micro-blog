@@ -516,6 +516,54 @@ h1 span {
 
 .post-category { margin-left: auto; font-style: italic; }
 
+.post-actions {
+  display: flex;
+  gap: 0.3rem;
+  margin-left: 0.35rem;
+}
+
+.post-action {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.post-action:hover {
+  background: var(--soft);
+  color: var(--accent-strong);
+}
+
+.post-action svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.75;
+}
+
+.share-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .page-footer {
   padding: clamp(2.5rem, 6vw, 4rem) 0 1rem;
   color: var(--subtle);
@@ -631,6 +679,7 @@ h1 span {
   }
 
   .post-category { display: none; }
+  .post-actions { margin-left: auto; }
 }
 
 @media (max-width: 23rem) {

@@ -29,6 +29,10 @@ test('groups months, sorts newest first, renders Markdown, and sanitizes HTML',a
   assert.ok(html.includes('rel="canonical" href="https://example.com/journal/2026-10.html"'));
   assert.ok(html.includes('application/ld+json'));
   assert.ok(html.includes('href="2026-10-25--second.html"'));
+  assert.ok(html.includes('class="post-action copy-link"'));
+  assert.ok(html.includes('data-post-url="https://example.com/journal/2026-10-25--second.html"'));
+  assert.ok(html.includes('class="post-action share-link"'));
+  assert.ok(html.includes('role="status" aria-live="polite"'));
   const home = await readFile(path.join(base,'dist/index.html'),'utf8');
   assert.ok(!home.includes('id="2026-09-30--older"'));
   assert.ok(home.includes('property="og:title"'));
